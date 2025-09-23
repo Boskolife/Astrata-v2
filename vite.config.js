@@ -10,7 +10,7 @@ htmlFiles.forEach((file) => {
 });
 
 export default defineConfig({
-  base: '/Astarta-v2',
+  base: '/Astrata-v2',
   root: 'src',
   publicDir: '../public',
   plugins: [
