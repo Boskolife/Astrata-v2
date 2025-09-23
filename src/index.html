@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex,nofollow">
+
+  <title>Astarta Capital</title>
+  <link rel="stylesheet" href="/styles/main.scss">
+  <script type="module" src="/js/main.js" defer></script>
+</head>
+
+<body>
+  <video id="video" class="video" playsinline muted preload="metadata" poster=""
+    disablePictureInPicture disableRemotePlayback aria-label="Astarta Capital presentation video">
+    <source src="./video/output.mp4" media="(min-width: 479px)" type="video/mp4">
+    <source src="./video/output_mob.mp4" media="(max-width: 480px)" type="video/mp4">
+  </video>
+  <div class="sound_button_wrap">
+    <p>
+      Scroll down to discover
+    </p>
+    {{> sound-button }}
+  </div>
+  <div class="arrow_down_wrap">
+    <img src="./images/arrow.svg" alt="arrow down">
+  </div>
+  {{> header }}
+  <main>
+    <div class="section_body">
+      <section class="section first-section" data-seg="0">
+        <div class="container">
+          <div class="content">
+            <div class="col"></div>
+            <div class="middle_col">
+              <img src="./images/site-title.png"
+                alt="Astarta Capital - The future doesn't arrive by chance">
+            </div>
+            <div class="right_col">
+              <p>The future doesn’t <br> arrive by chance. <br>
+                <span class="gray_text">It’s built, layer by layer, by those who see beyond the
+                  obvious.</span>
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section class="section second-section" data-seg="1">
+        <div class="container">
+          <div class="content">
+            <div class="right_col">
+              <p>
+                Opportunities today <br>
+                are scattered, fragmented, <br>
+                hidden in the noise <br>
+                of hype and volatility.
+              </p>
+              <br>
+              <br>
+              <p>We cut through the chaos — identifying what endures,<span class="gray_text"> what
+                  scales, and what defines the next era of wealth.</span>
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section class="section third-section" data-seg="2">
+        <div class="container">
+          <div class="content">
+            <div class="number_wrap">
+              <picture>
+                <source srcset="./images/number-1.svg" media="(min-width: 768px)">
+                <img src="./images/number-1-mob.svg" alt="image not found" class="number_img">
+              </picture>
+            </div>
+            <div class="right_col">
+              <p>
+                Where culture, entertainment, and blockchain converge into a trillion-dollar
+                frontier.<span class="gray_text"> We invest in the ecosystems where play becomes
+                  economy, and communities become nations.</span>
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section class="section fourth-section" data-seg="3">
+        <div class="container">
+          <div class="content">
+            <div class="number_wrap">
+              <picture>
+                <source srcset="./images/number-2.svg" media="(min-width: 768px)">
+                <img src="./images/number-2-mob.svg" alt="image not found" class="number_img">
+              </picture>
+            </div>
+            <div class="right_col">
+              <p>Not speculation. <br>
+                Not headlines. <br>
+                Infrastructure. Protocols.
+              </p>
+              <p>The foundations of a decentralized world.<br><span class="gray_text">We position
+                  capital where innovation becomes indispensable.</span>
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section class="section fifth-section" data-seg="4">
+        <div class="container">
+          <div class="content">
+            <div class="number_wrap">
+              <picture>
+                <source srcset="./images/number-3.svg" media="(min-width: 768px)">
+                <img src="./images/number-3-mob.svg" alt="image not found" class="number_img">
+              </picture>
+            </div>
+            <div class="right_col">
+              <p>
+                Timeless,<br>
+                tangible,<br>
+                enduring.
+              </p>
+              <br>
+              <br>
+              <p>While new technologies rise and scale, real estate <span class="gray_text">remains
+                  the anchor—bridging vision with stability, growth with preservation.</span></p>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section class="section sixth-section" data-seg="5">
+        <div class="container">
+          <div class="content">
+            <div class="right_col">
+              <p>
+                This is Astarta: a capital architecture built on foresight, conviction, and
+                precision.
+              </p>
+              <br>
+              <br>
+              <p>
+                <span class="gray_text">Three domains.</span>
+                <span class="gray_text">One vision.</span>
+                <span class="gray_text">Infinite potential.</span>
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section class="section seventh-section" id="form" data-seg="6">
+        <div class="container">
+          <div class="content">
+            <div class="form_wrap">
+              <h2>Contact us to explore partnership opportunities.</h2>
+              <form action="#" id="contact-form">
+                <div class="input_wrap">
+                  <input type="text" name="firstName" placeholder="First Name">
+                </div>
+                <div class="input_wrap">
+                  <input type="text" name="lastName" placeholder="Last Name">
+                </div>
+                <div class="input_wrap">
+                  <input type="tel" name="phone" placeholder="Phone Number">
+                </div>
+                <div class="input_wrap">
+                  <input type="email" name="email" placeholder="Email Address">
+                </div>
+                <button type="submit" class="btn btn_secondary">Send</button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+  {{>footer}}
+</body>
+
+</html>

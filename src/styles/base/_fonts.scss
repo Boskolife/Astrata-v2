@@ -1,0 +1,28 @@
+@mixin font($font_name, $file_name, $weight, $style) {
+    @font-face {
+        font-family: $font_name;
+        font-style: #{$style};
+        font-weight: #{$weight};
+        src: url("/fonts/#{$file_name}.woff2") format("woff2"),
+        url("/fonts/#{$file_name}.woff") format("woff"),
+        url("/fonts/#{$file_name}.ttf") format("truetype"),
+        url("/fonts/#{$file_name}.eot") format("embedded-opentype"),
+        url("/fonts/#{$file_name}.svg") format("svg");
+        font-display: swap;
+    }
+}
+
+
+@include font("SpaceMono", "SpaceMono-Regular", 400, normal);
+
+// Fallback fonts для лучшей производительности
+$font-fallback: 'Courier New', 'Courier', 'Monaco', 'Menlo', monospace;
+
+// Предотвращение FOUT (Flash of Unstyled Text)
+.fonts-loading {
+  font-family: $font-fallback;
+}
+
+.fonts-loaded {
+  font-family: 'SpaceMono', $font-fallback;
+}

@@ -1,0 +1,40 @@
+.footer {
+    position: relative;
+    z-index: 30;
+    background-color: $black;
+    padding: 52px 0;
+
+    // &::after {
+    //     content: '';
+    //     position: absolute;
+    //     z-index: 5;
+    //     top: -100%;
+    //     left: 0;
+    //     height: 100%;
+    //     width: 100%;
+    //     background: linear-gradient(to top, #000 0%, #0000 100%);
+    // }
+
+    .container {
+        position: static;
+        transform: translate(0);
+    }
+
+    &_content {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    &_link {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 68px;
+        min-width: 68px;
+        max-height: 68px;
+        max-width: 68px;
+    }
+}
