@@ -31,6 +31,34 @@ main {
     height: var(--vh);
 }
 
+// Interface visibility control
+// All interface elements are hidden by default and shown with .active class
+#hud-seg,
+#hud-prog,
+#hud-time,
+.sound_button_wrap,
+.arrow_down_wrap,
+header,
+footer,
+.section {
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.5s ease, visibility 0.5s ease;
+}
+
+// Show elements when active class is present
+#hud-seg.active,
+#hud-prog.active,
+#hud-time.active,
+.sound_button_wrap.active,
+.arrow_down_wrap.active,
+header.active,
+footer.active,
+.section.active {
+    opacity: 1;
+    visibility: visible;
+}
+
 .video {
     position: fixed;
     inset: 0;
@@ -57,11 +85,23 @@ main {
 .gray_text {
     color: $gray;
 
+    .word-wrapper,
+    .char {
+        display: inline-block;
+    }
+
+
+    &.fdc_text {
+        display: flex;
+        flex-direction: column;
+    }
+
     &.typing-animation {
+
         .char {
             color: $gray;
             transition: color 0.1s ease-in-out;
-            white-space: pre-wrap; // Сохраняем пробелы и переносы
+            white-space: pre-wrap;
 
             &.active {
                 color: $white;
@@ -175,13 +215,7 @@ main {
     opacity: 0;
     visibility: hidden;
     transition: opacity 0.8s ease-in-out, visibility 0.8s ease-in-out;
-    padding: 130px 0;
-
-    @include media ("<tablet") {
-        padding-bottom: 164px;
-        padding-top: 100px;
-    }
-
+    padding: max(15vh, 130px) 0;
 
     &.active {
         z-index: 10;
@@ -288,6 +322,8 @@ main {
             max-width: 430px;
             width: 100%;
 
+
+
             @include media ("<tablet") {
                 max-width: 100%
             }
@@ -296,7 +332,7 @@ main {
                 width: 100%;
 
                 &:first-child {
-                    max-width: 340px;
+                    max-width: 250px;
                     margin-left: auto;
 
                     @include media ("<tablet") {
