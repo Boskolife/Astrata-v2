@@ -543,6 +543,9 @@ function startIntroPlayback() {
   const startTime = performance.now();
   isPlayingIntro = true;
   setHudVisibility(false);
+  
+  // Блокируем скролл во время интро
+  lockScroll();
 
   let rafId = null;
   const step = (now) => {
@@ -566,6 +569,8 @@ function startIntroPlayback() {
     rafId = null;
     isPlayingIntro = false;
     setHudVisibility(true);
+    // Разблокируем скролл при отмене интро
+    unlockScroll();
   };
 
   rafId = requestAnimationFrame(step);
@@ -578,6 +583,8 @@ function finishIntroPlayback() {
   const afterIntroProgress = 1 / VIDEO_SEGMENTS.length + 0.0001;
   virtualScrollY = maxVirtualScroll * afterIntroProgress;
   setHudVisibility(true);
+  // Разблокируем скролл после завершения интро
+  unlockScroll();
   updateSectionVisibility();
 }
 
@@ -674,10 +681,10 @@ function handleWheel(event) {
     return;
   }
 
-  // Любое колесо — пропускаем/отменяем интро
+  // Во время интро блокируем попытки скролла, не пропуская интро
   if (isPlayingIntro) {
-    if (typeof cancelIntroPlayback === 'function') cancelIntroPlayback();
-    finishIntroPlayback();
+    event.preventDefault();
+    return;
   }
 
   // Если скролл заблокирован, предотвращаем событие
@@ -714,16 +721,21 @@ function handleTouchStart(event) {
   touchVelocity = 0;
   touchTotalDelta = 0;
 
-  // Любое взаимодействие — пропускаем/отменяем интро
+  // Во время интро игнорируем попытки начать скролл
   if (isPlayingIntro) {
-    if (typeof cancelIntroPlayback === 'function') cancelIntroPlayback();
-    finishIntroPlayback();
+    return;
   }
 }
 
 function handleTouchMove(event) {
   // Если мы в режиме футера, разрешаем стандартный скролл
   if (isInFooterMode) {
+    return;
+  }
+
+  // Во время интро блокируем скролл жестами
+  if (isPlayingIntro) {
+    event.preventDefault();
     return;
   }
 
@@ -862,10 +874,7 @@ function handleHeaderButtonClick(event) {
   const target = event.target.closest('a[href="#form"]');
   if (target) {
     event.preventDefault();
-    if (isPlayingIntro) {
-      if (typeof cancelIntroPlayback === 'function') cancelIntroPlayback();
-      finishIntroPlayback();
-    }
+    // При желании можно также запретить скип интро кнопкой — сейчас оставляем без скипа
     scrollToForm();
   }
 }
