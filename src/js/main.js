@@ -118,9 +118,7 @@ let pinLastSectionOnce = false; // одноразовая фиксация по�
 
 // Переменные для управления блокировкой скролла и последовательным появлением
 let isScrollLocked = false; // Флаг блокировки скролла
-let sectionAnimationTimeout = null; // Таймер для анимации секции
-let currentSectionBlocks = []; // Массив блоков текущей секции
-let currentBlockIndex = 0; // Индекс текущего блока
+// Удалены неиспользуемые переменные для анимации секций
 
 // Настройки виртуального скролла
 const SCROLL_SENSITIVITY = 0.1; // ниже чувствительность скролла
@@ -135,7 +133,6 @@ const SECTION_LOCK_DURATION = 1500; // Время блокировки скро�
 
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const lerp = (a, b, t) => a + (b - a) * t;
-const invlerp = (a, b, v) => (v - a) / (b - a);
 
 // Функция для блокировки скролла
 function lockScroll() {
@@ -994,12 +991,14 @@ function initSoundButtons() {
     button.addEventListener('click', () => {
       isSoundOn = !isSoundOn;
       const span = button.querySelector('span');
+      const iconOn = button.querySelector('.icon-on');
+      const iconOff = button.querySelector('.icon-off');
       if (span) {
         span.textContent = isSoundOn ? 'Sound Off' : 'Sound On';
       }
-
-      if ($video) {
-        $video.muted = !isSoundOn;
+      if (iconOn && iconOff) {
+        iconOn.style.display = isSoundOn ? 'none' : 'block';
+        iconOff.style.display = isSoundOn ? 'block' : 'none';
       }
     });
   });

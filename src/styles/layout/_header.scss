@@ -18,6 +18,7 @@
     }
 
     .logo {
+        max-width: 217px;
         @include media ("<tablet") {
             width: 127px;
         }
