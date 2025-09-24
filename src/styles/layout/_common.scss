@@ -278,7 +278,7 @@ footer.active,
             @include media ("<tablet") {
                 right: auto;
                 left: 0%;
-                top: 12%;
+                top: 25%;
                 transform: translate(0);
             }
         }
@@ -309,7 +309,7 @@ footer.active,
             transform: translate(-50%, -50%);
 
             @include media ("<tablet") {
-                top: 30%;
+                top: 25%;
                 right: 15%;
                 transform: translate(0);
             }
@@ -373,6 +373,7 @@ footer.active,
             transform: translate(-50%, -50%);
 
             @include media ("<phone") {
+                top: 25%;
                 left: 0;
                 transform: translate(0);
             }
