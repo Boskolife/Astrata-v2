@@ -275,7 +275,7 @@ footer.active,
             @include media ("<tablet") {
                 right: auto;
                 left: 0%;
-                top: 25%;
+                top: 15%;
                 transform: translate(0);
             }
         }
@@ -285,6 +285,10 @@ footer.active,
             margin-top: auto;
             max-width: 425px;
             overflow: hidden;
+
+            @include media ("<tablet") {
+                max-width: 290px;
+            }
 
             &::after {
                 content: url(../images/line.svg);
@@ -306,8 +310,9 @@ footer.active,
             transform: translate(-50%, -50%);
 
             @include media ("<tablet") {
-                top: 25%;
-                right: 15%;
+                top: 28%;
+                left: auto;
+                right: -5%;
                 transform: translate(0);
             }
         }
@@ -318,8 +323,6 @@ footer.active,
             justify-content: space-between;
             max-width: 430px;
             width: 100%;
-
-
 
             @include media ("<tablet") {
                 max-width: 100%
@@ -336,6 +339,7 @@ footer.active,
                         margin-right: auto;
                         margin-left: 0;
                         text-align: start;
+                        max-width: 160px;
                     }
                 }
 
@@ -370,8 +374,8 @@ footer.active,
             transform: translate(-50%, -50%);
 
             @include media ("<phone") {
-                top: 25%;
-                left: 0;
+                top: 28%;
+                left: 1%;
                 transform: translate(0);
             }
         }
