@@ -9,7 +9,7 @@ const SEGMENTS = [
   [15.3, 15.3], // Секция 2 (data-seg="2")
   [18.3, 18.3], // Секция 3 (data-seg="3")
   [22.25, 22.25], // Секция 4 (data-seg="4")
-  [26.34, 26.34], // Секция 5 (data-seg="5")
+  [27.45, 27.45], // Секция 5 (data-seg="5")
   [29.4, 29.4], // Секция 6 (data-seg="6")
 ];
 
@@ -25,18 +25,18 @@ const VIDEO_SEGMENTS = [
   [18.3, 18.3], // Видео сегмент 3: 18.3 - 22.25 сек (секция 3)
   [18.3, 22.25], // Промежуточный сегмент: 18.4 - 22.1 сек (переход 3→4)
   [22.25, 22.25], // Видео сегмент 4: 22.25 - 22.25 сек (секция 4)
-  [22.25, 27.45], // Промежуточный сегмент: 22.1 - 26.34 сек (переход 4→5)
-  [27.45, 27.45], // Видео сегмент 5: 26.34 - 26.34 сек (секция 5)
-  [27.45, 29.0], // Промежуточный сегмент: 22.1 - 26.34 сек (переход 5→6)
-  [29.0, 29.0], // Видео сегмент 6: 29.4 - 29.4 сек (секция 6)
+  [22.25, 27.45], // Промежуточный сегмент: 22.25 - 27.45 сек (переход 4→5)
+  [27.45, 27.45], // Видео сегмент 5: 27.45 - 27.45 сек (секция 5)
+  [27.45, 29.4], // Промежуточный сегмент: 27.45 - 29.4 сек (переход 5→6)
+  [29.4, 29.4], // Видео сегмент 6: 29.4 - 29.4 сек (секция 6)
 ];
 
-const LERP_ALPHA = 0.1;
+const LERP_ALPHA = 0.18; // быстрее сглаживание к целевому времени
 
-const VELOCITY_BOOST = 0.12;
+const VELOCITY_BOOST = 0.06; // меньше влияние скорости на время видео
 
-const SNAP_TO_FRAME = true;
-const SOURCE_FPS = 120;
+const SNAP_TO_FRAME = false; // без жесткой привязки к кадрам для плавности
+const SOURCE_FPS = 60; // справочно, если SNAP_TO_FRAME включат
 
 function primeVideoPlayback(video) {
   if (!video) {
@@ -111,6 +111,11 @@ let hasPlayedIntro = false; // Флаг: интро уже проиграно
 let isPlayingIntro = false; // Флаг: сейчас проигрывается интро
 let cancelIntroPlayback = null; // Функция отмены анимации интро
 
+// Порог задержки при выходе из футера
+let footerExitHoldDistance = 0; // Требуемая дистанция (px), обычно высота футера
+let footerExitProgress = 0; // Накопленная дистанция (px) прокрутки вверх у верхней границы футера
+let pinLastSectionOnce = false; // одноразовая фиксация последней секции после выхода из футера
+
 // Переменные для управления блокировкой скролла и последовательным появлением
 let isScrollLocked = false; // Флаг блокировки скролла
 let sectionAnimationTimeout = null; // Таймер для анимации секции
@@ -118,8 +123,8 @@ let currentSectionBlocks = []; // Массив блоков текущей се�
 let currentBlockIndex = 0; // Индекс текущего блока
 
 // Настройки виртуального скролла
-const SCROLL_SENSITIVITY = 0.1; // Чувствительность скролла
-const SCROLL_DAMPING = 0.2; // Затухание скорости
+const SCROLL_SENSITIVITY = 0.1; // ниже чувствительность скролла
+const SCROLL_DAMPING = 0.28; // выше затухание для уменьшения дрожания
 const TOTAL_SEGMENTS = SEGMENTS.length;
 const MIN_SCROLL_THRESHOLD = 0.1; // Минимальный порог для начала скролла
 const FOOTER_TRANSITION_HEIGHT = 10; // Высота перехода к футеру
@@ -331,12 +336,21 @@ function resetTypingAnimation(element) {
 }
 
 function detectActiveSection() {
-  // Проверяем, находимся ли мы в режиме футера
-  if (virtualScrollY >= maxVirtualScroll) {
+  // Проверяем, находимся ли мы в режиме футера (с допуском, чтобы не требовать точного достижения конца)
+  if (virtualScrollY >= maxVirtualScroll - FOOTER_TRANSITION_HEIGHT) {
     if (!isInFooterMode) {
       isInFooterMode = true;
       // Переключаемся в режим футера
       document.body.style.overflow = 'auto';
+      // Устанавливаем задержку выхода = текущей высоте футера
+      try {
+        const footerEl = document.querySelector('footer');
+        footerExitHoldDistance = (footerEl && footerEl.offsetHeight) || 0;
+      } catch (_) {
+        footerExitHoldDistance = 0;
+      }
+      footerExitProgress = 0;
+      footerExitAt = 0;
     }
     activeSeg = TOTAL_SEGMENTS - 1; // Показываем последнюю секцию
     return;
@@ -516,7 +530,11 @@ function updateSectionVisibility() {
     const headerEl = document.querySelector('header');
     if (headerEl) setActive(headerEl, activeVideoSeg !== 0);
     const footerEl = document.querySelector('footer');
-    if (footerEl) setActive(footerEl, activeVideoSeg !== 0);
+    // Показываем футер, когда включён режим футера или мы на последней секции вне перехода
+    if (footerEl) {
+      const shouldShowFooter = isInFooterMode === true || (!inTransition && activeSeg === TOTAL_SEGMENTS - 1);
+      setActive(footerEl, shouldShowFooter);
+    }
 
     lastActiveSeg = activeSeg;
     lastActiveVideoSeg = activeVideoSeg;
@@ -602,6 +620,15 @@ function tick() {
     // Обновляем виртуальную позицию скролла
     virtualScrollY += scrollVel;
 
+    // Одноразовая фиксация на последней секции сразу после выхода из футера
+    if (pinLastSectionOnce) {
+      virtualScrollY = Math.max(0, maxVirtualScroll - 0.01);
+      scrollVel = 0;
+      pinLastSectionOnce = false;
+    }
+
+    // Без удержания: ничего не делаем специально, остаёмся на последней секции благодаря virtualScrollY = maxVirtualScroll
+
     // Если мы в режиме футера, разрешаем скролл дальше
     if (isInFooterMode) {
       // В режиме футера не ограничиваем скролл
@@ -676,8 +703,32 @@ function loadVideo() {
 
 // Обработчики виртуального скролла
 function handleWheel(event) {
-  // Если мы в режиме футера, разрешаем стандартный скролл
+  // Если мы в режиме футера — добавляем задержку выхода (противоскролл) равную высоте футера
   if (isInFooterMode) {
+    if (window.scrollY > 0) {
+      // Пока не у верхней границы — стандартный скролл
+      footerExitProgress = 0;
+      return;
+    }
+    const delta = event.deltaY;
+    if (delta < 0) {
+      // Скролл вверх на верхней границе футера — накапливаем прогресс
+      event.preventDefault();
+      footerExitProgress += Math.abs(delta);
+      if (footerExitProgress >= footerExitHoldDistance) {
+        isInFooterMode = false;
+        document.body.style.overflow = 'hidden';
+        // Фиксируемся на последней секции, но избегаем точной границы
+        virtualScrollY = Math.max(0, maxVirtualScroll - 0.01);
+        footerExitProgress = 0;
+        pinLastSectionOnce = true; // одноразово закрепим позицию в ближайшем кадре
+        window.scrollTo(0, 0);
+        updateSectionVisibility();
+      }
+    } else {
+      // Скролл вниз — остаёмся в футере, сбрасываем прогресс
+      footerExitProgress = 0;
+    }
     return;
   }
 
@@ -703,7 +754,7 @@ function handleWheel(event) {
     scrollVel += delta * SCROLL_SENSITIVITY;
 
     // Ограничиваем максимальную скорость
-    scrollVel = clamp(scrollVel, -40, 40);
+    scrollVel = clamp(scrollVel, -28, 28);
   }
 }
 
@@ -728,8 +779,33 @@ function handleTouchStart(event) {
 }
 
 function handleTouchMove(event) {
-  // Если мы в режиме футера, разрешаем стандартный скролл
+  // Если мы в режиме футера — добавляем задержку выхода (жест вверх) равную высоте футера
   if (isInFooterMode) {
+    if (window.scrollY > 0) {
+      // Пока не у верхней границы — стандартный скролл
+      return;
+    }
+
+    const touchY = event.touches[0].clientY;
+    const deltaY = lastTouchY - touchY; // < 0 — жест вверх (выход из футера)
+    lastTouchY = touchY;
+
+    if (deltaY < 0) {
+      event.preventDefault();
+      footerExitProgress += Math.abs(deltaY);
+      if (footerExitProgress >= footerExitHoldDistance) {
+        isInFooterMode = false;
+        document.body.style.overflow = 'hidden';
+        virtualScrollY = Math.max(0, maxVirtualScroll - 0.01);
+        footerExitProgress = 0;
+        pinLastSectionOnce = true;
+        window.scrollTo(0, 0);
+        updateSectionVisibility();
+      }
+    } else {
+      // Жест вниз — остаёмся в футере, сбрасываем прогресс
+      footerExitProgress = 0;
+    }
     return;
   }
 
@@ -781,7 +857,7 @@ function handleTouchEnd(event) {
   scrollVel += distanceBoost;
 
   // Ограничиваем максимальную скорость
-  scrollVel = clamp(scrollVel, -30, 30);
+  scrollVel = clamp(scrollVel, -24, 24);
 }
 
 $video.addEventListener('loadedmetadata', () => {
@@ -816,12 +892,13 @@ document.addEventListener(
   'scroll',
   () => {
     if (isInFooterMode && window.scrollY <= 0) {
+      // Выходим из футера: возвращаем обычную логику виртуального скролла
       isInFooterMode = false;
-      virtualScrollY = maxVirtualScroll - 1;
       document.body.style.overflow = 'hidden';
+      // Возвращаемся к последнему моменту перед футером
+      virtualScrollY = Math.max(0, maxVirtualScroll - window.innerHeight);
+      // Фиксируем позицию и обновляем интерфейс
       window.scrollTo(0, 0);
-
-      // Обновляем видимость элементов интерфейса
       updateSectionVisibility();
     }
   },

@@ -6,25 +6,22 @@
 
 html {
     &::-webkit-scrollbar {
+        width: 0;
+        height: 0;
         display: none;
     }
-
-    scrollbar-width: 0;
+    scrollbar-width: none; // Firefox
+    -ms-overflow-style: none; // IE/Edge legacy
 }
 
 body {
-    min-height: var(--vh);
-    overflow-x: hidden;
-    scroll-behavior: smooth;
-    touch-action: pan-y;
-    -webkit-overflow-scrolling: touch;
-    transition: overflow 0.3s ease;
-    position: relative;
-    height: var(--stage-h);
-    user-select: none;
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
+    &::-webkit-scrollbar {
+        width: 0;
+        height: 0;
+        display: none;
+    }
+    scrollbar-width: none; // Firefox
+    -ms-overflow-style: none; // IE/Edge legacy
 }
 
 main {
