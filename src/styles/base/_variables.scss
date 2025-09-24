@@ -2,25 +2,46 @@
 // Color calculator - http://razorjam.github.io/sasscolourfunctioncalculator/
 // Color names - http://name-of-color.com/
 
+// Video scroll app specific colors
+$dark-bg: #0b0b0b;
+$video-bg: #000;
+$overlay-bg-start: rgba(0,0,0,0.35);
+$overlay-bg-end: rgba(0,0,0,0.25);
+$section-border: rgba(255,255,255,0.08);
+$section-bg: rgba(255,255,255,0.04);
+$label-bg: rgba(0,0,0,0.35);
+$hud-bg: rgba(0,0,0,0.5);
+$hud-border: rgba(255,255,255,0.12);
+
 $black: #010101;
 $white: #DDDDDD;
 $gray: #9D9D9D;
 
 
 
-$base-font-sans-serif: 'SpaceMono', 'Courier New', 'Courier', 'Monaco', 'Menlo', monospace;
+
+$base-font-sans-serif: 'SpaceMono',
+'Courier New',
+'Courier',
+'Monaco',
+'Menlo',
+monospace;
 $base-font-serif: 'Times New Roman',
 'Times',
 'Baskerville',
 'Georgia',
 serif;
+$Montserrat: 'Montserrat',
+$base-font-sans-serif;
+$Lora: 'Lora',
+$base-font-sans-serif;
 
 // This is the default html and body font-size for the base rem value.
 $rem-base: 16px;
 
 // Body
 $base-text-color: $white !default;
-$base-background-color: $black !default;
+$base-background-color: $dark-bg !default;
 $font-size-base: 16px !default;
 $line-height-base: 1.2 !default;
 $base-font-family: $base-font-sans-serif !default;
@@ -29,19 +50,19 @@ $vertical-rhythm: ($line-height-base * 1em);
 
 $base-min-width: 320px;
 
-// Liks
-$base-link-color: $black;
+// Links
+$base-link-color: $white;
 
 // Buttons 
-$btn-color: $white !default;
-$btn-background: $black !default;
+$btn-color: $black !default;
+$btn-background: $white !default;
 $btn-padding: 0.4em 0.7em !default;
 $btn-font-size: inherit !default;
 
 // Forms
 $form-element-padding: $btn-padding !default;
 $form-element-border-color: $gray !default;
-$form-element-focus-border-color: $black !default;
+$form-element-focus-border-color: $white !default;
 $placeholder-color: $gray !default;
 
 // Headers
@@ -57,3 +78,14 @@ $headings-color: inherit !default;
 
 
 $animation-speed: all .3s ease 0s;
+
+// Video scroll app specific variables
+$section-height: 100dvh;
+$stage-height: 100dvh;
+$overlay-padding: 2rem;
+$label-padding: 10px 14px;
+$label-font-size: 14px;
+$hud-font-size: 12px;
+$hud-padding: 10px 12px;
+$border-radius: 12px;
+$hud-border-radius: 10px;

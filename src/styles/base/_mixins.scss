@@ -303,5 +303,5 @@ $animation-speed: .3s !default;
 
 @mixin font-with-spacing($size) {
     font-size: $size;
-    letter-spacing: ($size * -0.02); 
+    letter-spacing: ($size * -0.02);
 }

@@ -1,0 +1,209 @@
+// =============================================================================
+// SECTIONS COMPONENTS - Компоненты секций
+// =============================================================================
+
+// Контейнер секций
+.sections {
+  position: relative;
+  z-index: 1;
+}
+
+// Призрачный контент для создания скролла
+.scroll-spacer {
+  height: calc(100vh * 8); // Высота = количество секций * высота экрана
+  width: 100%;
+  pointer-events: none;
+}
+
+// Отдельная секция
+.section {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  padding: max(15vh, 120px) 0;
+  z-index: 1;
+  pointer-events: none;
+  will-change: opacity, visibility;
+
+  // Специальные стили для футера
+  &.footer-section {
+    padding: 0;
+    height: auto;
+  }
+
+  // Активная секция
+  &.active {
+    opacity: 1;
+    visibility: visible;
+    z-index: 10;
+    pointer-events: auto;
+  }
+
+  // Контейнер контента
+  .container {
+    max-width: 1440px;
+    width: 100%;
+    height: 100%;
+    margin: 0 auto;
+    padding: 0 clamp(16px, 48px, 48px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    @media (max-width: 768px) {
+      padding: 0 16px;
+    }
+  }
+
+  // Контент секции
+  .content {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    text-align: center;
+    gap: 2rem;
+
+    @media (max-width: 768px) {
+      gap: 1rem;
+    }
+  }
+
+  // Колонки
+  .col,
+  .middle_col,
+  .right_col {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .middle_col,
+  .right_col {
+    max-width: 550px;
+    width: 100%;
+    margin: 0 auto;
+    text-align: center;
+  }
+
+  .fd-column {
+    display: flex;
+    flex-direction: column;
+  }
+
+  // Изображения
+  img {
+    max-width: 100%;
+    height: auto;
+  }
+
+  // Текст
+  p {
+    font-size: clamp(16px, 2vw, 24px);
+    line-height: 1.4;
+    margin: 0;
+
+    &.gray_text {
+      color: #9D9D9D;
+
+      .char,
+      .word {
+        display: inline-block;
+      }
+
+      &.typing-animation {
+        .char {
+          color: #9D9D9D;
+          transition: color 0.1s ease-in-out;
+
+          &.active {
+            color: #DDDDDD;
+          }
+        }
+      }
+    }
+  }
+
+  // Обертка для номеров
+  .number_wrap {
+    display: flex;
+    align-items: flex-end;
+    flex-direction: column;
+    justify-content: center;
+    margin-bottom: 2rem;
+    max-width: max-content;
+    margin: 0 auto;
+    gap: 0.5rem;
+
+    @media (max-width: 768px) {
+      margin-bottom: 1rem;
+    }
+
+    span {
+      font-size: 18px;
+      @include font-with-spacing(18px);
+      color: #AAAAAA;
+    }
+
+    p {
+      font-size: 18px;
+      @include font-with-spacing(18px);
+      color: #D1D3FF;
+      text-transform: uppercase;
+    }
+  }
+
+  // Форма
+  .form_wrap {
+    max-width: 500px;
+    width: 100%;
+    text-align: center;
+    margin: 0 auto;
+
+    h2 {
+      @include adaptive-value("font-size", 24, 18, 1);
+      @include font-with-spacing(24px);
+      font-weight: 400;
+      text-align: center;
+      color: $white;
+      max-width: 370px;
+      width: 100%;
+      margin: 0 auto;
+      margin-bottom: 2rem;
+    }
+
+    .input_wrap {
+      margin-bottom: 1rem;
+
+      input {
+        width: 100%;
+        padding: 12px 16px;
+        border: 1px solid $gray;
+        background: transparent;
+        color: $white;
+        font-size: 16px;
+        border-radius: 4px;
+        transition: border-color 0.3s ease;
+
+        &:focus {
+          outline: none;
+          border-color: $white;
+        }
+
+        &::placeholder {
+          color: $gray;
+        }
+      }
+    }
+
+    .btn {
+      width: 100%;
+    }
+  }
+}

@@ -1,24 +1,8 @@
 .footer {
-    // Скрыт по умолчанию визуально и по высоте, чтобы не было "кромки" на мобилках,
-    // но остаётся в потоке для плавной анимации появления.
     position: relative;
     z-index: 30;
     background-color: $black;
-    padding: 0; // в скрытом состоянии без отступов
-    max-height: 0; // схлопываем высоту
-    overflow: hidden; // прячем содержимое
-    transition: opacity 0.5s ease, visibility 0.5s ease, max-height 0.5s ease, padding 0.5s ease;
-
-    // &::after {
-    //     content: '';
-    //     position: absolute;
-    //     z-index: 5;
-    //     top: -100%;
-    //     left: 0;
-    //     height: 100%;
-    //     width: 100%;
-    //     background: linear-gradient(to top, #000 0%, #0000 100%);
-    // }
+    padding: 52px 0;
 
     .container {
         position: static;
@@ -41,11 +25,5 @@
         min-width: 68px;
         max-height: 68px;
         max-width: 68px;
-    }
-
-    &.active {
-        padding: 52px 0; // восстанавливаем отступы
-        max-height: 400px; // достаточно для содержимого; можно увеличить при необходимости
-        overflow: visible;
     }
 }
