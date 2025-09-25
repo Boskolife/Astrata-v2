@@ -93,3 +93,19 @@
 
   }
 }
+
+// Скрытие текста в последней секции (форма)
+.seventh-section~* .sound_button_wrap p,
+.seventh-section .sound_button_wrap p,
+body:has(.seventh-section.active) .sound_button_wrap p {
+  opacity: 0 !important;
+  visibility: hidden !important;
+  transition: opacity 0.5s ease-in-out, visibility 0.5s ease-in-out;
+}
+
+// Класс для скрытия текста кнопки звука
+.sound_button_wrap.hide-text p {
+  opacity: 0 !important;
+  visibility: hidden !important;
+  transition: opacity 0.5s ease-in-out, visibility 0.5s ease-in-out;
+}

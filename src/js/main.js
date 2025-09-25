@@ -239,6 +239,15 @@ function showSection(sectionIndex) {
     }
   });
 
+  // Управляем видимостью текста кнопки звука
+  if ($soundButtonWrap) {
+    if (sectionIndex === 6) { // Последняя секция (форма)
+      $soundButtonWrap.classList.add('hide-text');
+    } else {
+      $soundButtonWrap.classList.remove('hide-text');
+    }
+  }
+
   currentSection = sectionIndex;
   isShowingSection = true;
 }
@@ -253,6 +262,11 @@ function hideAllSections() {
     section.classList.remove('active');
     resetTypingAnimation(section);
   });
+
+  // Убираем класс скрытия текста кнопки звука
+  if ($soundButtonWrap) {
+    $soundButtonWrap.classList.remove('hide-text');
+  }
 
   currentSection = -1;
   isShowingSection = false;
