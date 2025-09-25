@@ -13,10 +13,10 @@
   <div id="wrapper">
     {{>header}}
     <div class="stage" id="stage">
-      <video id="video" class="video" playsinline webkit-playsinline muted preload="metadata" 
+      <video id="video" class="video" playsinline webkit-playsinline muted preload="metadata"
         loop="false" aria-label="Astarta Capital presentation video">
-        <source src="./video/output.mp4" media="(min-width: 479px)" type="video/mp4">
-        <source src="./video/output_mob.mp4" media="(max-width: 480px)" type="video/mp4">
+        <source src="./video/output_original.mp4" media="(min-width: 479px)" type="video/mp4">
+        <source src="./video/output_mob_original.mp4" media="(max-width: 480px)" type="video/mp4">
       </video>
     </div>
     {{> sound-button }}
@@ -26,148 +26,145 @@
       <div class="scroll-spacer"></div>
 
       <!-- Прокручиваемые секции -->
-      <div class="sections" id="sections">
-        <section class="section zero-section" data-seg="0"></section>
-        <!-- Первая секция -->
-        <section class="section first-section" data-seg="1">
-          <div class="container">
-            <div class="content">
-              <div class="col"></div>
-              <div class="middle_col">
-                <img src="./images/site-title.png"
-                  alt="Astarta Capital - The future doesn't arrive by chance">
-              </div>
-              <div class="right_col">
-                <p class="gray_text">The future doesn't arrive by chance. It's built, layer by
-                  layer,
-                  by
-                  those who see beyond the obvious.</p>
-              </div>
+      <!-- Первая секция -->
+      <section class="section first-section" data-seg="0">
+        <div class="container">
+          <div class="content">
+            <div class="col"></div>
+            <div class="middle_col">
+              <img src="./images/site-title.png"
+                alt="Astarta Capital - The future doesn't arrive by chance">
+            </div>
+            <div class="right_col">
+              <p class="gray_text">The future doesn't arrive by chance. It's built, layer by
+                layer,
+                by
+                those who see beyond the obvious.</p>
             </div>
           </div>
-        </section>
+        </div>
+      </section>
 
-        <!-- Вторая секция -->
-        <section class="section second-section" data-seg="2">
-          <div class="container">
-            <div class="content">
-              <div class="right_col">
-                <p class="gray_text">
-                  Opportunities today are scattered, fragmented, hidden in the noise of hype and
-                  volatility.
-                </p>
-                <p class="gray_text">We cut through the chaos — identifying what endures, what
-                  scales,
-                  and what defines the next era of wealth.</p>
-              </div>
+      <!-- Вторая секция -->
+      <section class="section second-section" data-seg="1">
+        <div class="container">
+          <div class="content">
+            <div class="right_col">
+              <p class="gray_text">
+                Opportunities today are scattered, fragmented, hidden in the noise of hype and
+                volatility.
+              </p>
+              <p class="gray_text">We cut through the chaos — identifying what endures, what
+                scales,
+                and what defines the next era of wealth.</p>
             </div>
           </div>
-        </section>
+        </div>
+      </section>
 
-        <!-- Третья секция -->
-        <section class="section third-section" data-seg="3">
-          <div class="container">
-            <div class="content">
-              <div class="number_wrap">
-                <span>// 0.1</span>
-                <p>Web3 Gaming</p>
-              </div>
-              <div class="right_col fd-column">
-                <p class="gray_text">Where culture, entertainment, and blockchain converge into a
-                  trillion-dollar frontier. We invest in the ecosystems where play becomes economy,
-                  and
-                  communities become nations.</p>
-              </div>
+      <!-- Третья секция -->
+      <section class="section third-section" data-seg="2">
+        <div class="container">
+          <div class="content">
+            <div class="number_wrap">
+              <picture>
+                <source srcset="./images/number-1.svg" media="(min-width: 768px)">
+                <img src="./images/number-1-mob.svg" alt="image not found" class="number_img">
+              </picture>
+            </div>
+            <div class="right_col fd-column">
+              <p class="gray_text">Where culture, entertainment, and blockchain converge into a
+                trillion-dollar frontier. We invest in the ecosystems where play becomes economy,
+                and
+                communities become nations.</p>
             </div>
           </div>
-        </section>
+        </div>
+      </section>
 
-        <!-- Четвертая секция -->
-        <section class="section fourth-section" data-seg="4">
-          <div class="container">
-            <div class="content">
-              <div class="number_wrap">
-                <span>// 0.2</span>
-                <p>Crypto</p>
-              </div>
-              <div class="right_col">
-                <p class="gray_text">Not speculation. Not headlines. Infrastructure. Protocols.</p>
-                <p class="gray_text">The foundations of a decentralized world. We position capital
-                  where
-                  innovation becomes indispensable.</p>
-              </div>
+      <!-- Четвертая секция -->
+      <section class="section fourth-section" data-seg="3">
+        <div class="container">
+          <div class="content">
+            <div class="number_wrap">
+              <picture>
+                <source srcset="./images/number-2.svg" media="(min-width: 768px)">
+                <img src="./images/number-2-mob.svg" alt="image not found" class="number_img">
+              </picture>
+            </div>
+            <div class="right_col">
+              <p class="gray_text">Not speculation. Not headlines. Infrastructure. Protocols.</p>
+              <p class="gray_text">The foundations of a decentralized world. We position capital
+                where
+                innovation becomes indispensable.</p>
             </div>
           </div>
-        </section>
+        </div>
+      </section>
 
-        <!-- Пятая секция -->
-        <section class="section fifth-section" data-seg="5">
-          <div class="container">
-            <div class="content">
-              <div class="number_wrap">
-                <span>// 0.3</span>
-                <p>Real Estate</p>
-              </div>
-              <div class="right_col fd-column">
-                <p class="gray_text">Timeless, tangible, enduring.</p>
-                <p class="gray_text">While new technologies rise and scale, real estate remains the
-                  anchor—bridging vision with stability, growth with preservation.</p>
-              </div>
+      <!-- Пятая секция -->
+      <section class="section fifth-section" data-seg="4">
+        <div class="container">
+          <div class="content">
+            <div class="number_wrap">
+              <picture>
+                <source srcset="./images/number-3.svg" media="(min-width: 768px)">
+                <img src="./images/number-3-mob.svg" alt="image not found" class="number_img">
+              </picture>
+            </div>
+            <div class="right_col fd-column">
+              <p class="gray_text">Timeless, tangible, enduring.</p>
+              <p class="gray_text">While new technologies rise and scale, real estate remains the
+                anchor—bridging vision with stability, growth with preservation.</p>
             </div>
           </div>
-        </section>
+        </div>
+      </section>
 
-        <!-- Шестая секция -->
-        <section class="section sixth-section" data-seg="6">
-          <div class="container">
-            <div class="content">
-              <div class="right_col fd-column">
-                <p class="gray_text">This is Astarta: a capital architecture built on foresight,
-                  conviction, and precision.</p>
-                <p class="fd-column">
-                  <span class="gray_text">Three domains.</span>
-                  <span class="gray_text">One vision.</span>
-                  <span class="gray_text">Infinite potential.</span>
-                </p>
-              </div>
+      <!-- Шестая секция -->
+      <section class="section sixth-section" data-seg="5">
+        <div class="container">
+          <div class="content">
+            <div class="right_col fd-column">
+              <p class="gray_text">This is Astarta: a capital architecture built on foresight,
+                conviction, and precision.</p>
+              <p class="fd-column">
+                <span class="gray_text">Three domains.</span>
+                <span class="gray_text">One vision.</span>
+                <span class="gray_text">Infinite potential.</span>
+              </p>
             </div>
           </div>
-        </section>
+        </div>
+      </section>
 
-        <!-- Седьмая секция - форма -->
-        <section class="section seventh-section" id="form" data-seg="7">
-          <div class="container">
-            <div class="content">
-              <div class="form_wrap">
-                <h2>Contact us to explore partnership opportunities.</h2>
-                <form action="#" id="contact-form" novalidate>
-                  <div class="input_wrap">
-                    <input type="text" name="firstName" placeholder="First Name"
-                      autocomplete="given-name">
-                  </div>
-                  <div class="input_wrap">
-                    <input type="text" name="lastName" placeholder="Last Name"
-                      autocomplete="family-name">
-                  </div>
-                  <div class="input_wrap">
-                    <input type="tel" name="phone" placeholder="Phone Number" autocomplete="tel">
-                  </div>
-                  <div class="input_wrap">
-                    <input type="email" name="email" placeholder="Email Address"
-                      autocomplete="email">
-                  </div>
-                  <button type="submit" class="btn btn_secondary">Send</button>
-                </form>
-              </div>
+      <!-- Седьмая секция - форма -->
+      <section class="section seventh-section" id="form" data-seg="6">
+        <div class="container">
+          <div class="content">
+            <div class="form_wrap">
+              <h2>Contact us to explore partnership opportunities.</h2>
+              <form action="#" id="contact-form" novalidate>
+                <div class="input_wrap">
+                  <input type="text" name="firstName" placeholder="First Name"
+                    autocomplete="given-name">
+                </div>
+                <div class="input_wrap">
+                  <input type="text" name="lastName" placeholder="Last Name"
+                    autocomplete="family-name">
+                </div>
+                <div class="input_wrap">
+                  <input type="tel" name="phone" placeholder="Phone Number" autocomplete="tel">
+                </div>
+                <div class="input_wrap">
+                  <input type="email" name="email" placeholder="Email Address" autocomplete="email">
+                </div>
+                <button type="submit" class="btn btn_secondary">Send</button>
+              </form>
             </div>
           </div>
-        </section>
-
-        <!-- Восьмая секция - футер -->
-        <section class="section footer-section" data-seg="8">
-          {{>footer}}
-        </section>
-      </div>
+        </div>
+      </section>
     </main>
   </div>
 </body>

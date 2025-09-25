@@ -1,74 +1,129 @@
 import { SEGMENTS } from './timecode';
 
 /**
- * Простая система скролл-видео с показом секций по таймкодам
+ * Система скролл-видео с показом секций по таймкодам и интро
  */
 
 // DOM элементы
-const $video = document.getElementById('video');
-const $sections = Array.from(document.querySelectorAll('.section'));
-const $soundButton = document.querySelector('.toggle-sound');
-const $soundButtonWrap = document.querySelector('.sound_button_wrap');
+const $video = document.getElementById('video');                    // Основное видео
+const $sections = Array.from(document.querySelectorAll('.section')); // Все секции контента
+const $soundButton = document.querySelector('.toggle-sound');      // Кнопка звука
+const $soundButtonWrap = document.querySelector('.sound_button_wrap'); // Обертка кнопки звука
 
 // Переменные состояния
-let currentSection = 0; // текущая активная секция
-let isScrollBlocked = false; // флаг блокировки скролла
-let lastSectionCheck = 0; // время последней проверки секций
-let isShowingSection = false; // флаг показа секции (предотвращает скрытие во время паузы)
-let scrollPosition = 0; // позиция скролла во время блокировки
-let videoTimeAtBlock = 0; // время видео в момент блокировки
-let isSoundOn = true; // состояние звука (по умолчанию включен)
+let currentSection = -1;           // Индекс текущей активной секции (-1 = нет активной)
+let isScrollBlocked = false;       // Заблокирован ли скролл (во время показа секции)
+let lastSectionCheck = 0;          // Время последней проверки секций (для оптимизации)
+let isShowingSection = false;      // Показывается ли секция в данный момент
+let videoTimeAtBlock = 0;          // Время видео в момент блокировки скролла
+let scrollPositionAtBlock = 0;     // Позиция скролла в момент блокировки
+let isSoundOn = true;              // Включен ли звук
+let isIntroPlaying = true;         // Идет ли интро
+let hasUserInteracted = false;     // Было ли взаимодействие пользователя
 
 // Настройки
-const LERP_ALPHA = 0.15; // плавность перехода видео (увеличено для более плавного скролла)
-const VELOCITY_BOOST = 0; // ускорение от скорости скролла (отключено)
-const PAUSE_DURATION = 3000; // длительность паузы секции (1.5 секунды)
-const SECTION_CHECK_INTERVAL = 100; // проверяем секции каждые 100мс вместо каждого кадра
+const SECTION_CHECK_INTERVAL = 100; // Интервал проверки секций (мс)
+const INTRO_END_TIME = 4.3;         // Время окончания интро (секунды)
+
+// Переменные для отслеживания изменений (оптимизация)
+let lastVideoTime = 0;              // Последнее время видео
+let lastScrollProgress = 0;         // Последний прогресс скролла
+let lastActiveSection = -1;         // Последняя активная секция
+
+// Настройки для разных устройств
+const DEVICE_CONFIG = {
+  mobile: {
+    lerpAlpha: 0.10,        // Коэффициент сглаживания видео (0-1, чем меньше - тем плавнее)
+    pauseDuration: 1500,    // Длительность блокировки скролла при показе секции (мс)
+    typingDelay: 50,        // Задержка между появлением символов в анимации печати (мс)
+    typingPause: 200,       // Пауза между анимацией разных текстовых блоков (мс)
+    scrollSensitivity: 1,   // Чувствительность скролла (1 = полная, 0.5 = в два раза медленнее)
+  },
+  tablet: {
+    lerpAlpha: 0.10,        // Коэффициент сглаживания видео (0-1, чем меньше - тем плавнее)
+    pauseDuration: 1500,    // Длительность блокировки скролла при показе секции (мс)
+    typingDelay: 50,        // Задержка между появлением символов в анимации печати (мс)
+    typingPause: 200,       // Пауза между анимацией разных текстовых блоков (мс)
+    scrollSensitivity: 1,   // Чувствительность скролла (1 = полная, 0.5 = в два раза медленнее)
+  },
+  desktop: {
+    lerpAlpha: 0.05,        // Коэффициент сглаживания видео (0-1, чем меньше - тем плавнее)
+    pauseDuration: 1500,    // Длительность блокировки скролла при показе секции (мс)
+    typingDelay: 50,        // Задержка между появлением символов в анимации печати (мс)
+    typingPause: 200,       // Пауза между анимацией разных текстовых блоков (мс)
+    scrollSensitivity: 1,   // Чувствительность скролла (1 = полная, 0.5 = в два раза медленнее)
+  },
+};
 
 /**
- * Получает прогресс скролла от 0 до 1
+ * Определяет тип устройства для применения соответствующих настроек
+ * @returns {string} 'mobile', 'tablet' или 'desktop'
+ */
+function getDeviceType() {
+  const width = window.innerWidth;
+  const isTouch = 'ontouchstart' in window; // Проверяем поддержку тач-событий
+
+  if (width <= 768 || (isTouch && width <= 1024)) {
+    return 'mobile';    // Мобильные устройства
+  } else if (width <= 1024 || (isTouch && width <= 1440)) {
+    return 'tablet';    // Планшеты
+  } else {
+    return 'desktop';   // Десктопы
+  }
+}
+
+// Текущая конфигурация устройства
+let deviceConfig = DEVICE_CONFIG[getDeviceType()];
+
+// Кэш для элементов интерфейса
+const interfaceElements = {
+  header: null,
+  soundButton: null,
+  arrowDown: null,
+};
+
+/**
+ * Получает прогресс скролла от 0 до 1 с учетом типа устройства
+ * @returns {number} Прогресс скролла от 0 до 0.99
  */
 function getScrollProgress() {
-  const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
-  return Math.min(Math.max(window.scrollY / maxScroll, 0), 1);
+  const maxScroll = document.documentElement.scrollHeight - window.innerHeight; // Максимальный скролл
+  const progress = window.scrollY / maxScroll; // Текущий прогресс скролла (0-1)
+
+  // Применяем чувствительность скролла для разных устройств
+  const adjustedProgress = progress * deviceConfig.scrollSensitivity;
+
+  // Ограничиваем прогресс от 0 до 0.99 для полного скролла (0.99 вместо 1 для стабильности)
+  return Math.min(Math.max(adjustedProgress, 0), 0.99);
 }
 
 /**
- * Создает анимацию печатания для элемента
+ * Создает анимацию печатания для элемента (появление текста по буквам)
+ * @param {HTMLElement} element - Элемент с текстом для анимации
+ * @param {number} delay - Задержка между символами (мс), если не указана - используется из конфига
  */
-function createTypingAnimation(element, delay = 100) {
-  if (!element) return;
+function createTypingAnimation(element, delay = null) {
+  // Используем адаптивную задержку если не указана
+  const typingDelay = delay || deviceConfig.typingDelay;
+  if (!element || element.classList.contains('typing-active')) return; // Проверяем, что элемент существует и не анимируется
 
-  // Защита от повторного запуска анимации
-  if (element.classList.contains('typing-active')) {
-    return;
-  }
-
-  // Если элемент ещё не подготовлен — оборачиваем символы в .char и включаем режим анимации
+  // Инициализация элемента если нужно
   if (!element.classList.contains('typing-initialized')) {
     const text = element.textContent || '';
-    
-    // Сохраняем оригинальный текст в data-атрибуте
     element.setAttribute('data-original-text', text);
-    
     element.innerHTML = '';
     element.classList.add('typing-animation', 'typing-initialized');
 
     // Разбиваем текст на слова и пробелы
     const words = text.split(/(\s+)/);
-
     words.forEach((word) => {
       if (word.match(/\s+/)) {
-        // Пробелы и переносы строк остаются как текстовые узлы
         element.appendChild(document.createTextNode(word));
       } else if (word.length > 0) {
-        // Каждое слово оборачиваем в span
         const wordSpan = document.createElement('span');
         wordSpan.className = 'word';
 
-        // Разбиваем слово на буквы
-        const letters = word.split('');
-        letters.forEach((letter) => {
+        word.split('').forEach((letter) => {
           const letterSpan = document.createElement('span');
           letterSpan.className = 'char';
           letterSpan.textContent = letter;
@@ -78,41 +133,29 @@ function createTypingAnimation(element, delay = 100) {
         element.appendChild(wordSpan);
       }
     });
-    
   } else {
-    // Убедимся, что класс анимации включён при старте показа
     element.classList.add('typing-animation');
   }
 
-  // Удаляем активность со всех символов перед запуском. Пробелы/переносы остаются текстовыми узлами.
+  // Активируем анимацию
   const charElements = element.querySelectorAll('.char');
   charElements.forEach((el) => el.classList.remove('active'));
-
-  // Отмечаем элемент как активный
   element.classList.add('typing-active');
 
-  // Затем последовательно активируем символы с задержкой
   charElements.forEach((charEl, index) => {
-    setTimeout(() => {
-      charEl.classList.add('active');
-    }, index * delay);
+    setTimeout(() => charEl.classList.add('active'), index * typingDelay);
   });
 }
 
 /**
- * Запускает анимацию печатания для текста в секции
+ * Запускает анимацию печатания для секции
  */
 function startTypingAnimation(section) {
-  // Защита от повторного запуска анимации для секции
-  if (section.classList.contains('typing-animation-running')) {
-    return;
-  }
-  
+  if (section.classList.contains('typing-animation-running')) return;
+
   section.classList.add('typing-animation-running');
-  
   const grayTexts = section.querySelectorAll('.gray_text');
 
-  // Функция для запуска анимации элемента с ожиданием завершения предыдущего
   function animateTextSequentially(index = 0) {
     if (index >= grayTexts.length) {
       section.classList.remove('typing-animation-running');
@@ -120,68 +163,33 @@ function startTypingAnimation(section) {
     }
 
     const textElement = grayTexts[index];
-    
-    // Запускаем анимацию текущего элемента (это также инициализирует элемент)
-    createTypingAnimation(textElement, 50);
-    
-    // Подсчитываем количество символов в текущем элементе после инициализации
+    createTypingAnimation(textElement);
+
     const chars = textElement.querySelectorAll('.char');
-    const animationDuration = chars.length * 50; // 50мс на символ
-    
-    // После завершения анимации текущего элемента запускаем следующий
-    setTimeout(() => {
-      animateTextSequentially(index + 1);
-    }, animationDuration + 200); // +200мс пауза между элементами
+    const animationDuration = chars.length * deviceConfig.typingDelay;
+
+    setTimeout(
+      () => animateTextSequentially(index + 1),
+      animationDuration + deviceConfig.typingPause,
+    );
   }
 
-  // Запускаем последовательную анимацию
   animateTextSequentially(0);
 }
 
 /**
- * Показывает определенную секцию и скрывает остальные
- */
-function showSection(sectionIndex) {
-  // Оптимизация: изменяем только если секция действительно изменилась
-  if (currentSection === sectionIndex) return;
-
-  $sections.forEach((section, index) => {
-    if (index === sectionIndex) {
-      section.classList.add('active');
-
-      // Запускаем анимацию печатания для текста в этой секции
-      setTimeout(() => {
-        startTypingAnimation(section);
-      }, 200); // Небольшая задержка после появления секции
-    } else {
-      section.classList.remove('active');
-
-      // Убираем анимацию печатания у скрытых секций
-      resetTypingAnimation(section);
-    }
-  });
-  currentSection = sectionIndex;
-  isShowingSection = true; // Устанавливаем флаг показа секции
-}
-
-/**
- * Восстанавливает оригинальный текст и убирает анимацию
+ * Восстанавливает оригинальный текст
  */
 function resetTypingAnimation(section) {
-  // Убираем флаг запущенной анимации секции
   section.classList.remove('typing-animation-running');
-  
-  const grayTexts = section.querySelectorAll('.gray_text');
-  grayTexts.forEach((text) => {
+
+  section.querySelectorAll('.gray_text').forEach((text) => {
     text.classList.remove('typing-animation', 'typing-active');
+    text
+      .querySelectorAll('.char')
+      .forEach((char) => char.classList.remove('active'));
 
-    // Убираем активность со всех символов
-    const chars = text.querySelectorAll('.char');
-    chars.forEach((char) => char.classList.remove('active'));
-
-    // Если элемент был инициализирован, восстанавливаем оригинальный текст
     if (text.classList.contains('typing-initialized')) {
-      // Сохраняем оригинальный текст в data-атрибуте при инициализации
       const originalText = text.getAttribute('data-original-text');
       if (originalText) {
         text.innerHTML = originalText;
@@ -193,20 +201,46 @@ function resetTypingAnimation(section) {
 }
 
 /**
- * Скрывает все секции (переходный режим)
+ * Показывает секцию
+ */
+function showSection(sectionIndex) {
+  if (currentSection === sectionIndex) return;
+
+  $sections.forEach((section, index) => {
+    if (index === sectionIndex) {
+      section.classList.add('active');
+      setTimeout(() => startTypingAnimation(section), deviceConfig.typingPause);
+    } else {
+      section.classList.remove('active');
+      resetTypingAnimation(section);
+    }
+  });
+
+  currentSection = sectionIndex;
+  isShowingSection = true;
+}
+
+/**
+ * Скрывает все секции
  */
 function hideAllSections() {
-  // Оптимизация: скрываем только если есть активные секции
   if (currentSection === -1) return;
 
   $sections.forEach((section) => {
     section.classList.remove('active');
-
-    // Убираем анимацию печатания у всех секций
     resetTypingAnimation(section);
   });
-  currentSection = -1; // Никакая секция не активна
-  isShowingSection = false; // Сбрасываем флаг показа секции
+
+  currentSection = -1;
+  isShowingSection = false;
+}
+
+/**
+ * Устанавливает overflow стили
+ */
+function setOverflowStyle(overflow) {
+  document.body.style.overflow = overflow;
+  document.documentElement.style.overflow = overflow;
 }
 
 /**
@@ -214,19 +248,23 @@ function hideAllSections() {
  */
 function blockScroll() {
   isScrollBlocked = true;
-
-  // Сохраняем текущую позицию скролла
-  scrollPosition = window.scrollY;
-
-  // Сохраняем текущее время видео
   videoTimeAtBlock = $video.currentTime || 0;
+  scrollPositionAtBlock = window.scrollY; // Сохраняем текущую позицию скролла
 
-  // Блокируем overflow
-  document.body.style.overflow = 'hidden';
-  document.documentElement.style.overflow = 'hidden';
+  // Принудительно останавливаем видео на нужном кадре
+  if ($video.readyState >= 2) {
+    $video.pause();
+    $video.currentTime = videoTimeAtBlock;
+    // Дополнительно убеждаемся, что видео остановлено
+    setTimeout(() => {
+      if (isScrollBlocked && !$video.paused) {
+        $video.pause();
+        $video.currentTime = videoTimeAtBlock;
+      }
+    }, 50);
+  }
 
-  // Принудительно возвращаем скролл к сохраненной позиции
-  window.scrollTo(0, scrollPosition);
+  setOverflowStyle('hidden');
 }
 
 /**
@@ -234,187 +272,298 @@ function blockScroll() {
  */
 function unblockScroll() {
   isScrollBlocked = false;
-  isShowingSection = false; // Сбрасываем флаг показа секции при разблокировке
+  isShowingSection = false;
 
-  // Восстанавливаем overflow
-  document.body.style.overflow = '';
-  document.documentElement.style.overflow = '';
-
-  // Восстанавливаем время видео к моменту блокировки
-  if ($video.readyState >= 2) {
-    $video.currentTime = videoTimeAtBlock;
+  setOverflowStyle('');
+  
+  // Сбрасываем накопленный скролл на мобильных устройствах
+  const isTouchDevice = 'ontouchstart' in window;
+  if (isTouchDevice) {
+    // Возвращаемся к позиции скролла в момент блокировки
+    window.scrollTo(0, scrollPositionAtBlock);
+    
+    // Дополнительно фиксируем позицию через небольшую задержку
+    setTimeout(() => {
+      window.scrollTo(0, scrollPositionAtBlock);
+    }, 10);
+    
+    // Еще один финальный сброс для надежности
+    setTimeout(() => {
+      window.scrollTo(0, scrollPositionAtBlock);
+    }, 50);
   }
 
-  // Оставляем скролл на той же позиции (никаких накоплений)
-  window.scrollTo(0, scrollPosition);
+  // Восстанавливаем точное время видео без запуска воспроизведения
+  if ($video.readyState >= 2) {
+    $video.currentTime = videoTimeAtBlock;
+    // НЕ запускаем play() - видео будет управляться скроллом
+  }
 }
 
 /**
- * Проверяет, нужно ли показать секцию на основе времени видео
+ * Проверяет отображение секций
  */
 function checkSectionDisplay() {
   const currentVideoTime = $video.currentTime || 0;
 
-  // Проверяем валидность времени видео
-  if (!isFinite(currentVideoTime) || currentVideoTime < 0) {
-    return;
-  }
+  if (!isFinite(currentVideoTime) || currentVideoTime < 0) return;
 
   let foundSection = false;
 
-  // Проверяем каждый таймкод
   for (let i = 0; i < SEGMENTS.length; i++) {
     const [startTime] = SEGMENTS[i];
 
-    // Проверяем валидность таймкода
-    if (!isFinite(startTime) || startTime < 0) {
-      continue;
-    }
+    if (!isFinite(startTime) || startTime < 0) continue;
 
-    // Если видео дошло до таймкода секции (с погрешностью 0.5 сек)
     if (Math.abs(currentVideoTime - startTime) < 0.5) {
       foundSection = true;
       if (i !== currentSection) {
         showSection(i);
         blockScroll();
-
-        // Разблокируем скролл через указанное время
-        setTimeout(() => {
-          unblockScroll();
-        }, PAUSE_DURATION);
+        setTimeout(unblockScroll, deviceConfig.pauseDuration);
       }
       return;
     }
   }
 
-  // Если мы не находимся в зоне показа секции, скрываем все секции (переходный режим)
-  // НО только если мы не в процессе показа секции (во время блокировки скролла)
   if (!foundSection && currentSection !== -1 && !isShowingSection) {
     hideAllSections();
   }
 }
 
 /**
- * Основной цикл анимации
+ * Основной цикл анимации - вызывается каждый кадр
+ * Управляет воспроизведением видео, скроллом и показом секций
  */
 function tick() {
-  // Получаем прогресс скролла (0-1)
-  const scrollProgress = getScrollProgress();
+  // Принудительно сбрасываем скролл в начале, если мы в интро
+  if (isIntroPlaying && window.scrollY > 0) {
+    resetScrollPosition();
+  }
 
-  // Вычисляем целевое время видео
-  const videoDuration = $video.duration || 30;
-  let targetTime = scrollProgress * videoDuration;
+  // Если идет интро - ждем его окончания
+  if (isIntroPlaying) {
+    if ($video.currentTime >= INTRO_END_TIME) {
+      finishIntro(); // Завершаем интро и переходим к основному режиму
+    }
+    requestAnimationFrame(tick);
+    return;
+  }
 
-  // Применяем ускорение от скорости скролла (если включено)
-  if (VELOCITY_BOOST !== 0) {
-    const dy = window.scrollY - (window.lastScrollY || window.scrollY);
-    window.lastScrollY = window.scrollY;
-    const scrollVel = Math.sign(dy);
-    targetTime +=
-      scrollVel *
-      Math.min(Math.abs(dy) / 1000, 1) *
-      videoDuration *
-      VELOCITY_BOOST;
-    targetTime = Math.max(0, Math.min(targetTime, videoDuration));
+  // Проверяем базовую готовность видео (ReadyState 1 достаточно для метаданных)
+  if ($video.readyState < 1) {
+    requestAnimationFrame(tick);
+    return;
+  }
+
+  const scrollProgress = getScrollProgress(); // Получаем прогресс скролла (0-0.99)
+  const videoDuration = $video.duration || 30; // Длительность видео (fallback 30s)
+
+  // Используем полную длительность видео для точного расчета
+  // targetTime = время интро + (прогресс скролла * оставшееся время)
+  const targetTime = INTRO_END_TIME + Math.max(0, scrollProgress) * (videoDuration - INTRO_END_TIME);
+
+  // Отслеживаем изменения для оптимизации (избегаем лишних вычислений)
+  const currentVideoTime = $video.currentTime;
+  const currentScrollProgress = Math.round(scrollProgress * 100) / 100;
+
+  if (
+    Math.abs(currentVideoTime - lastVideoTime) > 0.1 ||
+    Math.abs(currentScrollProgress - lastScrollProgress) > 0.01
+  ) {
+    lastVideoTime = currentVideoTime;
+    lastScrollProgress = currentScrollProgress;
   }
 
   // Обновляем время видео только если скролл не заблокирован
   if (!isScrollBlocked) {
-    // Плавное сглаживание времени видео
     const currentTime = $video.currentTime || 0;
-    const smoothedTime = currentTime + (targetTime - currentTime) * LERP_ALPHA;
+    // Сглаживаем переход к целевому времени (lerp - linear interpolation)
+    const smoothedTime = currentTime + (targetTime - currentTime) * deviceConfig.lerpAlpha;
 
-    // Применяем время к видео
-    if ($video.readyState >= 2 && !$video.seeking) {
+    // Позволяем видео доходить до самого конца (работаем даже с ReadyState 1)
+    if ($video.readyState >= 1 && !$video.seeking) {
       if (isFinite(smoothedTime) && smoothedTime >= 0) {
-        $video.currentTime = smoothedTime;
+        // Если целевое время больше длительности видео, устанавливаем максимальное возможное время
+        const finalTime = Math.min(smoothedTime, videoDuration);
+        try {
+          $video.currentTime = finalTime; // Устанавливаем новое время видео
+        } catch (error) {
+          // Игнорируем ошибки установки времени видео (например, если видео еще загружается)
+        }
       }
+    }
+  } else {
+    // Во время блокировки принудительно останавливаем видео на нужном кадре
+    if (!$video.paused) {
+      $video.pause();
+      $video.currentTime = videoTimeAtBlock; // Возвращаем к времени блокировки
     }
   }
 
-  // Проверяем секции только каждые SECTION_CHECK_INTERVAL миллисекунд
   const now = performance.now();
+  // Проверяем секции с интервалом для оптимизации производительности
   if (now - lastSectionCheck >= SECTION_CHECK_INTERVAL) {
-    checkSectionDisplay();
+    checkSectionDisplay(); // Проверяем, какую секцию нужно показать
     lastSectionCheck = now;
+
+    // Отслеживаем изменения секции для внутренней логики
+    if (currentSection !== lastActiveSection && currentSection >= 0) {
+      lastActiveSection = currentSection;
+    }
   }
 
-  // Продолжаем цикл
-  requestAnimationFrame(tick);
+  requestAnimationFrame(tick); // Планируем следующий кадр
 }
 
 /**
- * Обработчик для предотвращения скролла во время блокировки
+ * Предотвращает скролл во время блокировки
  */
 function preventScroll(e) {
   if (isScrollBlocked) {
     e.preventDefault();
     e.stopPropagation();
-
-    // Принудительно возвращаем скролл к сохраненной позиции
-    window.scrollTo(0, scrollPosition);
-
+    
+    // Дополнительно для мобильных устройств принудительно фиксируем позицию
+    const isTouchDevice = 'ontouchstart' in window;
+    if (isTouchDevice && e.type === 'touchmove') {
+      // Принудительно возвращаемся к сохраненной позиции
+      setTimeout(() => {
+        window.scrollTo(0, scrollPositionAtBlock);
+      }, 0);
+    }
+    
     return false;
   }
 }
 
 /**
- * Простая инициализация видео
+ * Управление интерфейсом
+ */
+function toggleInterface(show) {
+  // Кэшируем элементы при первом вызове
+  if (!interfaceElements.header) {
+    interfaceElements.header = document.querySelector('header');
+    interfaceElements.soundButton =
+      document.querySelector('.sound_button_wrap');
+    interfaceElements.arrowDown = document.querySelector('.arrow_down_wrap');
+  }
+
+  const display = show ? '' : 'none';
+
+  if (interfaceElements.header)
+    interfaceElements.header.style.display = display;
+  if (interfaceElements.soundButton)
+    interfaceElements.soundButton.style.display = display;
+  if (interfaceElements.arrowDown)
+    interfaceElements.arrowDown.style.display = display;
+}
+
+/**
+ * Блокирует все взаимодействия
+ */
+function blockAllInteractions() {
+  setOverflowStyle('hidden');
+
+  const events = ['wheel', 'touchmove', 'scroll', 'keydown', 'click'];
+  events.forEach((event) => {
+    document.addEventListener(event, preventAllInteractions, {
+      passive: false,
+    });
+  });
+}
+
+/**
+ * Разблокирует взаимодействия
+ */
+function unblockAllInteractions() {
+  setOverflowStyle('');
+
+  const events = ['wheel', 'touchmove', 'scroll', 'keydown', 'click'];
+  events.forEach((event) => {
+    document.removeEventListener(event, preventAllInteractions);
+  });
+}
+
+/**
+ * Предотвращает все взаимодействия
+ */
+function preventAllInteractions(e) {
+  e.preventDefault();
+  e.stopPropagation();
+  return false;
+}
+
+/**
+ * Завершает интро
+ */
+function finishIntro() {
+  isIntroPlaying = false;
+  toggleInterface(true);
+  unblockAllInteractions();
+  $video.currentTime = INTRO_END_TIME;
+  $video.removeAttribute('autoplay'); // Убираем автоплей после интро
+  hideAllSections();
+}
+
+/**
+ * Инициализация видео
  */
 function initVideo() {
+  // Принудительно сбрасываем позицию скролла и время видео
+  resetScrollPosition();
   $video.currentTime = 0;
   $video.muted = true;
-  
-  // Для iOS добавляем специальные атрибуты
+
+  // iOS атрибуты
   $video.setAttribute('playsinline', '');
   $video.setAttribute('webkit-playsinline', '');
   $video.setAttribute('muted', '');
   $video.setAttribute('preload', 'metadata');
-  
-  // Убираем autoplay и controls для iOS
-  $video.removeAttribute('autoplay');
   $video.removeAttribute('controls');
+
+  // Принудительно загружаем видео
+  $video.load();
+
+  toggleInterface(false);
+  blockAllInteractions();
+
+  // Автоматически запускаем интро
+  setTimeout(() => {
+    const playPromise = $video.play();
+    if (playPromise !== undefined) {
+      playPromise.catch(() => {
+        // Если автовоспроизведение заблокировано, ждем взаимодействия пользователя
+      });
+    }
+  }, 500); // Небольшая задержка для загрузки
 }
 
 /**
- * Переключает состояние звука
+ * Управление звуком
  */
 function toggleSound() {
   isSoundOn = !isSoundOn;
   updateSoundButton();
-  
-  // Сохраняем состояние в localStorage
   localStorage.setItem('astarta-sound-enabled', isSoundOn.toString());
 }
 
-/**
- * Обновляет внешний вид кнопки звука
- */
 function updateSoundButton() {
   if (!$soundButton || !$soundButtonWrap) return;
 
   const spanElement = $soundButton.querySelector('span');
-  
+
   if (isSoundOn) {
-    // Звук включен
     $soundButtonWrap.classList.remove('sound-off');
     $soundButton.setAttribute('aria-label', 'выключить звук');
-    if (spanElement) {
-      spanElement.textContent = 'Sound On';
-    }
+    if (spanElement) spanElement.textContent = 'Sound On';
   } else {
-    // Звук выключен
     $soundButtonWrap.classList.add('sound-off');
     $soundButton.setAttribute('aria-label', 'включить звук');
-    if (spanElement) {
-      spanElement.textContent = 'Sound Off';
-    }
+    if (spanElement) spanElement.textContent = 'Sound Off';
   }
 }
 
-/**
- * Загружает сохраненное состояние звука
- */
 function loadSoundState() {
   const savedState = localStorage.getItem('astarta-sound-enabled');
   if (savedState !== null) {
@@ -422,43 +571,86 @@ function loadSoundState() {
   }
 }
 
-/**
- * Инициализирует кнопку звука
- */
 function initSoundButton() {
   if (!$soundButton) return;
 
-  // Загружаем сохраненное состояние
   loadSoundState();
-
-  // Устанавливаем начальное состояние
   updateSoundButton();
 
-  // Добавляем обработчик клика
   $soundButton.addEventListener('click', (e) => {
     e.preventDefault();
     toggleSound();
   });
 }
 
+/**
+ * Обработчик первого взаимодействия (только если автовоспроизведение заблокировано)
+ */
+function handleFirstUserInteraction() {
+  if (!hasUserInteracted && isIntroPlaying) {
+    hasUserInteracted = true;
+
+    const playPromise = $video.play();
+    if (playPromise !== undefined) {
+      playPromise.catch(() => {});
+    }
+
+    document.removeEventListener('touchstart', handleFirstUserInteraction);
+    document.removeEventListener('click', handleFirstUserInteraction);
+  }
+}
 
 /**
- * Инициализация при загрузке страницы
+ * Обновляет конфигурацию устройства при изменении размера окна
  */
+function updateDeviceConfig() {
+  deviceConfig = DEVICE_CONFIG[getDeviceType()];
+}
+
+/**
+ * Сброс позиции скролла при загрузке
+ */
+function resetScrollPosition() {
+  window.scrollTo(0, 0);
+  document.documentElement.scrollTop = 0;
+  document.body.scrollTop = 0;
+
+  // Принудительно сбрасываем в истории браузера
+  if (history.scrollRestoration) {
+    history.scrollRestoration = 'manual';
+  }
+}
+
+/**
+ * Инициализация
+ */
+// Сбрасываем скролл сразу при загрузке DOM
+document.addEventListener('DOMContentLoaded', resetScrollPosition);
+
 window.addEventListener('load', () => {
-  // Инициализируем видео
+  // Принудительно сбрасываем позицию скролла
+  resetScrollPosition();
+
+  // Дополнительно сбрасываем с задержкой для перебивания браузерного восстановления
+  setTimeout(resetScrollPosition, 0);
+  setTimeout(resetScrollPosition, 10);
+  setTimeout(resetScrollPosition, 100);
+
   initVideo();
-
-  // Инициализируем кнопку звука
   initSoundButton();
-
-  // Изначально скрываем все секции (переходный режим)
   hideAllSections();
 
-  // Добавляем обработчики блокировки скролла
-  window.addEventListener('wheel', preventScroll, { passive: false });
-  window.addEventListener('touchmove', preventScroll, { passive: false });
-  window.addEventListener('scroll', preventScroll, { passive: false });
+  // Обработчик изменения размера окна
+  window.addEventListener('resize', updateDeviceConfig);
+
+  // Обработчики блокировки скролла
+  const scrollEvents = ['wheel', 'touchmove', 'scroll'];
+
+  scrollEvents.forEach((event) => {
+    // Всегда используем passive: false для возможности preventDefault
+    window.addEventListener(event, preventScroll, { passive: false });
+  });
+
   window.addEventListener('keydown', (e) => {
     if (
       isScrollBlocked &&
@@ -468,41 +660,23 @@ window.addEventListener('load', () => {
     }
   });
 
-  // Запускаем основной цикл
   requestAnimationFrame(tick);
 });
 
 /**
- * Обработчик загрузки метаданных видео
+ * Обработчики видео
  */
 $video.addEventListener('loadedmetadata', () => {
-  $video.pause();
-  $video.currentTime = 0;
+  // Не останавливаем видео, если идет интро
+  if (!isIntroPlaying) {
+    $video.pause();
+    $video.currentTime = 0;
+  }
 });
 
-/**
- * Обработчик для iOS - запуск видео при первом взаимодействии
- */
-let hasUserInteracted = false;
 
-function handleFirstUserInteraction() {
-  if (!hasUserInteracted) {
-    hasUserInteracted = true;
-    
-    // Пытаемся запустить видео
-    const playPromise = $video.play();
-    if (playPromise !== undefined) {
-      playPromise.catch(() => {
-        // Игнорируем ошибки автовоспроизведения
-      });
-    }
-    
-    // Убираем обработчики после первого взаимодействия
-    document.removeEventListener('touchstart', handleFirstUserInteraction);
-    document.removeEventListener('click', handleFirstUserInteraction);
-  }
-}
-
-// Добавляем обработчики для первого взаимодействия
-document.addEventListener('touchstart', handleFirstUserInteraction, { once: true });
+// Обработчики первого взаимодействия
+document.addEventListener('touchstart', handleFirstUserInteraction, {
+  once: true,
+});
 document.addEventListener('click', handleFirstUserInteraction, { once: true });
