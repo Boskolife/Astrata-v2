@@ -538,11 +538,7 @@ function initVideo() {
   $video.setAttribute('playsinline', '');
   $video.setAttribute('webkit-playsinline', '');
   $video.setAttribute('muted', '');
-  $video.setAttribute('preload', 'metadata');
   $video.removeAttribute('controls');
-
-  // Принудительно загружаем видео
-    $video.load();
 
   toggleInterface(false);
   blockAllInteractions();
@@ -685,13 +681,13 @@ window.addEventListener('load', () => {
 /**
  * Обработчики видео
  */
-$video.addEventListener('loadedmetadata', () => {
-  // Не останавливаем видео, если идет интро
-  if (!isIntroPlaying) {
-    $video.pause();
-    $video.currentTime = 0;
-  }
-});
+// $video.addEventListener('loadedmetadata', () => {
+//   // Не останавливаем видео, если идет интро
+//   if (!isIntroPlaying) {
+//     $video.pause();
+//     $video.currentTime = 0;
+//   }
+// });
 
 
 // Обработчики первого взаимодействия
