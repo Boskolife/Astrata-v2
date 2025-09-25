@@ -99,8 +99,8 @@
 
       @include media ("<tablet") {
         right: auto;
-        left: 0%;
-        transform: translate(0);
+        left: 50%;
+        transform: translateX(-75%);
       }
     }
 
