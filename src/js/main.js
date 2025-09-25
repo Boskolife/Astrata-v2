@@ -469,13 +469,24 @@ function toggleInterface(show) {
   }
 
   const display = show ? '' : 'none';
+  const visibility = show ? 'visible' : 'hidden';
+  const opacity = show ? '1' : '0';
 
-  if (interfaceElements.header)
+  if (interfaceElements.header) {
     interfaceElements.header.style.display = display;
-  if (interfaceElements.soundButton)
+    interfaceElements.header.style.visibility = visibility;
+    interfaceElements.header.style.opacity = opacity;
+  }
+  if (interfaceElements.soundButton) {
     interfaceElements.soundButton.style.display = display;
-  if (interfaceElements.arrowDown)
+    interfaceElements.soundButton.style.visibility = visibility;
+    interfaceElements.soundButton.style.opacity = opacity;
+  }
+  if (interfaceElements.arrowDown) {
     interfaceElements.arrowDown.style.display = display;
+    interfaceElements.arrowDown.style.visibility = visibility;
+    interfaceElements.arrowDown.style.opacity = opacity;
+  }
 }
 
 /**
@@ -639,8 +650,11 @@ function resetScrollPosition() {
 /**
  * Инициализация
  */
-// Сбрасываем скролл сразу при загрузке DOM
-document.addEventListener('DOMContentLoaded', resetScrollPosition);
+// Сбрасываем скролл и скрываем интерфейс сразу при загрузке DOM
+document.addEventListener('DOMContentLoaded', () => {
+  resetScrollPosition();
+  toggleInterface(false);
+});
 
 window.addEventListener('load', () => {
   // Принудительно сбрасываем позицию скролла
@@ -651,6 +665,9 @@ window.addEventListener('load', () => {
   setTimeout(resetScrollPosition, 10);
   setTimeout(resetScrollPosition, 100);
 
+  // Скрываем интерфейс сразу при загрузке
+  toggleInterface(false);
+  
   initVideo();
   initSoundButton();
   hideAllSections();

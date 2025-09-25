@@ -11,17 +11,19 @@
 </head>
 
 <body>
-  <div id="wrapper">
-    {{>header}}
-    <div class="stage" id="stage">
-      <video id="video" class="video" playsinline webkit-playsinline muted preload="metadata"
-        loop="false" aria-label="Astarta Capital presentation video">
-        <source src="./video/output_original.mp4" media="(min-width: 479px)" type="video/mp4">
-        <source src="./video/output_mob_original.mp4" media="(max-width: 480px)" type="video/mp4">
-      </video>
-    </div>
+  <div class="stage" id="stage">
+    <video id="video" class="video" playsinline webkit-playsinline muted preload="metadata"
+      loop="false" aria-label="Astarta Capital presentation video">
+      <source src="./video/output_original.mp4" media="(min-width: 479px)" type="video/mp4">
+      <source src="./video/output_mob_original.mp4" media="(max-width: 480px)" type="video/mp4">
+    </video>
+  </div>
+  <div class="content_wrap">
     {{> sound-button }}
     {{> arrow-down }}
+  </div>
+  <div id="wrapper">
+    {{>header}}
     <main>
       <!-- Призрачный контент для скролла -->
       <div class="scroll-spacer"></div>

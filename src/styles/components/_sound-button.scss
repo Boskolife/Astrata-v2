@@ -2,11 +2,11 @@
 // SOUND BUTTON COMPONENT - Компонент кнопки звука
 // =============================================================================
 
+
 .sound_button_wrap {
-  position: fixed;
+  position: absolute;
   @include adaptive-value("bottom", 50, 30, 1);
   @include adaptive-value("left", 48, 16, 1);
-
   max-width: 170px;
   width: 100%;
   z-index: 25;

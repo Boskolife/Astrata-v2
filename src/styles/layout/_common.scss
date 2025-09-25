@@ -11,6 +11,22 @@
 
 #wrapper {
     overflow: hidden;
+    max-width: 1440px;
+    width: 100%;
+    height: 100%;
+    margin: 0 auto;
+    position: relative;
+}
+
+.content_wrap {
+    position: fixed;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    max-width: 1440px;
+    width: 100%;
+    height: 100dvh;
+    margin: 0 auto;
 }
 
 // Сцена: фиксируем видео как фон (sticky), поверх — обычный контент
