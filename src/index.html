@@ -11,6 +11,17 @@
 </head>
 
 <body>
+  <!-- Лоадер для загрузки видео -->
+  <div class="video-loader" id="video-loader">
+    <div class="loader-content">
+      <div class="loader-spinner"></div>
+      <p class="loader-text">Loading video...</p>
+      <div class="loader-progress">
+        <div class="loader-progress-bar" id="loader-progress-bar"></div>
+      </div>
+    </div>
+  </div>
+  
   <div class="stage" id="stage">
     <video id="video" class="video" playsinline webkit-playsinline muted preload="metadata"
       loop="false" aria-label="Astarta Capital presentation video">

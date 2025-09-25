@@ -9,6 +9,8 @@ const $video = document.getElementById('video');                    // Осно�
 const $sections = Array.from(document.querySelectorAll('.section')); // Все секции контента
 const $soundButton = document.querySelector('.toggle-sound');      // Кнопка звука
 const $soundButtonWrap = document.querySelector('.sound_button_wrap'); // Обертка кнопки звука
+const $videoLoader = document.getElementById('video-loader');       // Лоадер видео
+const $loaderProgressBar = document.getElementById('loader-progress-bar'); // Прогресс-бар лоадера
 
 // Переменные состояния
 let currentSection = -1;           // Индекс текущей активной секции (-1 = нет активной)
@@ -20,6 +22,8 @@ let scrollPositionAtBlock = 0;     // Позиция скролла в моме�
 let isSoundOn = true;              // Включен ли звук
 let isIntroPlaying = true;         // Идет ли интро
 let hasUserInteracted = false;     // Было ли взаимодействие пользователя
+let isVideoLoaded = false;         // Загружено ли видео полностью
+let isLoaderVisible = true;        // Виден ли лоадер
 
 // Настройки
 const SECTION_CHECK_INTERVAL = 100; // Интервал проверки секций (мс)
@@ -529,6 +533,12 @@ function preventAllInteractions(e) {
  */
 function finishIntro() {
   isIntroPlaying = false;
+  
+  // Убеждаемся, что лоадер скрыт
+  if (isLoaderVisible) {
+    hideVideoLoader();
+  }
+  
   toggleInterface(true);
   unblockAllInteractions();
   $video.currentTime = INTRO_END_TIME;
@@ -554,15 +564,19 @@ function initVideo() {
   toggleInterface(false);
   blockAllInteractions();
 
-  // Автоматически запускаем интро
-  setTimeout(() => {
-    const playPromise = $video.play();
-    if (playPromise !== undefined) {
-      playPromise.catch(() => {
-        // Если автовоспроизведение заблокировано, ждем взаимодействия пользователя
-      });
+  // Автоматически запускаем интро только после полной загрузки
+  $video.addEventListener('canplaythrough', () => {
+    if (isVideoLoaded && !hasUserInteracted) {
+      setTimeout(() => {
+        const playPromise = $video.play();
+        if (playPromise !== undefined) {
+          playPromise.catch(() => {
+            // Если автовоспроизведение заблокировано, ждем взаимодействия пользователя
+          });
+        }
+      }, 500);
     }
-  }, 500); // Небольшая задержка для загрузки
+  });
 }
 
 /**
@@ -648,6 +662,88 @@ function resetScrollPosition() {
 }
 
 /**
+ * Управление лоадером видео
+ */
+function showVideoLoader() {
+  if (!$videoLoader) return;
+  
+  isLoaderVisible = true;
+  $videoLoader.classList.remove('hidden');
+}
+
+function hideVideoLoader() {
+  if (!$videoLoader) return;
+  
+  isLoaderVisible = false;
+  $videoLoader.classList.add('hidden');
+  
+  // Удаляем лоадер из DOM через некоторое время после скрытия
+  setTimeout(() => {
+    if ($videoLoader && !isLoaderVisible) {
+      $videoLoader.remove();
+    }
+  }, 500);
+}
+
+function updateLoaderProgress(progress) {
+  if (!$loaderProgressBar) return;
+  
+  const percentage = Math.min(Math.max(progress * 100, 0), 100);
+  $loaderProgressBar.style.width = `${percentage}%`;
+}
+
+/**
+ * Инициализация лоадера видео
+ */
+function initVideoLoader() {
+  if (!$videoLoader || !$video) return;
+  
+  showVideoLoader();
+  
+  // Обработчики событий загрузки видео
+  $video.addEventListener('loadstart', () => {
+    updateLoaderProgress(0);
+  });
+  
+  $video.addEventListener('progress', () => {
+    if ($video.buffered.length > 0) {
+      const bufferedEnd = $video.buffered.end($video.buffered.length - 1);
+      const duration = $video.duration;
+      
+      if (duration > 0) {
+        const progress = bufferedEnd / duration;
+        updateLoaderProgress(progress);
+      }
+    }
+  });
+  
+  $video.addEventListener('canplaythrough', () => {
+    isVideoLoaded = true;
+    updateLoaderProgress(1);
+    
+    // Небольшая задержка перед скрытием лоадера для плавности
+    setTimeout(() => {
+      if (isVideoLoaded) {
+        hideVideoLoader();
+      }
+    }, 300);
+  });
+  
+  $video.addEventListener('error', () => {
+    console.error('Ошибка загрузки видео');
+    hideVideoLoader();
+  });
+  
+  // Таймаут на случай, если видео не загрузится за разумное время
+  setTimeout(() => {
+    if (!isVideoLoaded && isLoaderVisible) {
+      console.warn('Таймаут загрузки видео, скрываем лоадер');
+      hideVideoLoader();
+    }
+  }, 30000); // 30 секунд
+}
+
+/**
  * Инициализация
  */
 // Сбрасываем скролл и скрываем интерфейс сразу при загрузке DOM
@@ -668,6 +764,7 @@ window.addEventListener('load', () => {
   // Скрываем интерфейс сразу при загрузке
   toggleInterface(false);
   
+  initVideoLoader(); // Инициализируем лоадер первым
   initVideo();
   initSoundButton();
   hideAllSections();
