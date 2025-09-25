@@ -105,7 +105,15 @@ function getScrollProgress() {
 function createTypingAnimation(element, delay = null) {
   // Используем адаптивную задержку если не указана
   const typingDelay = delay || deviceConfig.typingDelay;
-  if (!element || element.classList.contains('typing-active')) return; // Проверяем, что элемент существует и не анимируется
+  if (!element) return; // Проверяем, что элемент существует
+
+  // Сбрасываем предыдущую анимацию если она была активна
+  if (element.classList.contains('typing-active')) {
+    element.classList.remove('typing-active');
+    // Очищаем все таймауты для этого элемента
+    const charElements = element.querySelectorAll('.char');
+    charElements.forEach((el) => el.classList.remove('active'));
+  }
 
   // Инициализация элемента если нужно
   if (!element.classList.contains('typing-initialized')) {
@@ -143,7 +151,12 @@ function createTypingAnimation(element, delay = null) {
   element.classList.add('typing-active');
 
   charElements.forEach((charEl, index) => {
-    setTimeout(() => charEl.classList.add('active'), index * typingDelay);
+        setTimeout(() => {
+      // Проверяем, что анимация все еще активна перед добавлением класса
+      if (element.classList.contains('typing-active')) {
+        charEl.classList.add('active');
+      }
+    }, index * typingDelay);
   });
 }
 
@@ -151,13 +164,17 @@ function createTypingAnimation(element, delay = null) {
  * Запускает анимацию печатания для секции
  */
 function startTypingAnimation(section) {
-  if (section.classList.contains('typing-animation-running')) return;
+  // Если анимация уже запущена, сначала останавливаем её
+  if (section.classList.contains('typing-animation-running')) {
+    resetTypingAnimation(section);
+  }
 
   section.classList.add('typing-animation-running');
   const grayTexts = section.querySelectorAll('.gray_text');
-
+  
   function animateTextSequentially(index = 0) {
-    if (index >= grayTexts.length) {
+    // Проверяем, что анимация все еще должна продолжаться
+    if (!section.classList.contains('typing-animation-running') || index >= grayTexts.length) {
       section.classList.remove('typing-animation-running');
       return;
     }
@@ -184,11 +201,13 @@ function resetTypingAnimation(section) {
   section.classList.remove('typing-animation-running');
 
   section.querySelectorAll('.gray_text').forEach((text) => {
+    // Полностью останавливаем анимацию
     text.classList.remove('typing-animation', 'typing-active');
-    text
-      .querySelectorAll('.char')
-      .forEach((char) => char.classList.remove('active'));
+    
+    // Убираем активные классы с символов
+    text.querySelectorAll('.char').forEach((char) => char.classList.remove('active'));
 
+    // Восстанавливаем оригинальный текст
     if (text.classList.contains('typing-initialized')) {
       const originalText = text.getAttribute('data-original-text');
       if (originalText) {
@@ -283,7 +302,7 @@ function unblockScroll() {
     window.scrollTo(0, scrollPositionAtBlock);
     
     // Дополнительно фиксируем позицию через небольшую задержку
-    setTimeout(() => {
+      setTimeout(() => {
       window.scrollTo(0, scrollPositionAtBlock);
     }, 10);
     
@@ -322,8 +341,8 @@ function checkSectionDisplay() {
         blockScroll();
         setTimeout(unblockScroll, deviceConfig.pauseDuration);
       }
-      return;
-    }
+    return;
+  }
   }
 
   if (!foundSection && currentSection !== -1 && !isShowingSection) {
@@ -393,7 +412,7 @@ function tick() {
         }
       }
     }
-  } else {
+      } else {
     // Во время блокировки принудительно останавливаем видео на нужном кадре
     if (!$video.paused) {
       $video.pause();
@@ -523,7 +542,7 @@ function initVideo() {
   $video.removeAttribute('controls');
 
   // Принудительно загружаем видео
-  $video.load();
+    $video.load();
 
   toggleInterface(false);
   blockAllInteractions();
@@ -557,7 +576,7 @@ function updateSoundButton() {
     $soundButtonWrap.classList.remove('sound-off');
     $soundButton.setAttribute('aria-label', 'выключить звук');
     if (spanElement) spanElement.textContent = 'Sound On';
-  } else {
+    } else {
     $soundButtonWrap.classList.add('sound-off');
     $soundButton.setAttribute('aria-label', 'включить звук');
     if (spanElement) spanElement.textContent = 'Sound Off';
