@@ -289,16 +289,26 @@ function blockScroll() {
   scrollPositionAtBlock = window.scrollY; // Сохраняем текущую позицию скролла
 
   // Принудительно останавливаем видео на нужном кадре
-  if ($video.readyState >= 2) {
+  if ($video.readyState >= 1) {
     $video.pause();
     $video.currentTime = videoTimeAtBlock;
-    // Дополнительно убеждаемся, что видео остановлено
-    setTimeout(() => {
-      if (isScrollBlocked && !$video.paused) {
+    
+    // Множественные проверки для надежности
+    const forcePause = () => {
+      if (isScrollBlocked) {
         $video.pause();
         $video.currentTime = videoTimeAtBlock;
+        // Убираем все возможные события, которые могут запустить видео
+        $video.removeAttribute('autoplay');
+        $video.removeAttribute('loop');
       }
-    }, 50);
+    };
+    
+    // Принудительно останавливаем видео несколько раз с интервалами
+    setTimeout(forcePause, 10);
+    setTimeout(forcePause, 50);
+    setTimeout(forcePause, 100);
+    setTimeout(forcePause, 200);
   }
 
   setOverflowStyle('hidden');
@@ -331,8 +341,11 @@ function unblockScroll() {
   }
 
   // Восстанавливаем точное время видео без запуска воспроизведения
-  if ($video.readyState >= 2) {
+  if ($video.readyState >= 1) {
+    $video.pause(); // Убеждаемся, что видео остановлено
     $video.currentTime = videoTimeAtBlock;
+    // Восстанавливаем атрибуты, если они нужны
+    $video.setAttribute('muted', '');
     // НЕ запускаем play() - видео будет управляться скроллом
   }
 }
@@ -430,11 +443,15 @@ function tick() {
         }
       }
     }
-      } else {
+  } else {
     // Во время блокировки принудительно останавливаем видео на нужном кадре
-    if (!$video.paused) {
+    // Проверяем каждые несколько кадров для надежности
+    if (!$video.paused || Math.abs($video.currentTime - videoTimeAtBlock) > 0.1) {
       $video.pause();
-      $video.currentTime = videoTimeAtBlock; // Возвращаем к времени блокировки
+      $video.currentTime = videoTimeAtBlock;
+      // Дополнительно убираем атрибуты, которые могут запустить видео
+      $video.removeAttribute('autoplay');
+      $video.removeAttribute('loop');
     }
   }
 
@@ -574,6 +591,22 @@ function initVideo() {
   $video.setAttribute('webkit-playsinline', '');
   $video.setAttribute('muted', '');
   $video.removeAttribute('controls');
+
+  // Добавляем обработчики для предотвращения нежелательного воспроизведения
+  $video.addEventListener('play', (e) => {
+    if (isScrollBlocked) {
+      e.preventDefault();
+      $video.pause();
+      $video.currentTime = videoTimeAtBlock;
+    }
+  });
+
+  $video.addEventListener('timeupdate', () => {
+    if (isScrollBlocked && Math.abs($video.currentTime - videoTimeAtBlock) > 0.1) {
+      $video.pause();
+      $video.currentTime = videoTimeAtBlock;
+    }
+  });
 
   toggleInterface(false);
   blockAllInteractions();
