@@ -38,6 +38,12 @@
 
       .icon {
         fill: $white;
+        transition: $animation-speed;
+      }
+
+      span {
+        color: $white;
+        transition: $animation-speed;
       }
     }
 
@@ -64,6 +70,8 @@
         0 0 5px #FFFFFF80,
         0 0 10px #FFFFFF80,
         0 0 20px #FFFFFF80;
+      color: #AAAAAA;
+      transition: $animation-speed;
 
       @include media ("<phone") {
         display: none;

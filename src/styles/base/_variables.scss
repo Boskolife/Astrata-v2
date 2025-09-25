@@ -3,18 +3,9 @@
 // Color names - http://name-of-color.com/
 
 // Video scroll app specific colors
-$dark-bg: #0b0b0b;
-$video-bg: #000;
-$overlay-bg-start: rgba(0,0,0,0.35);
-$overlay-bg-end: rgba(0,0,0,0.25);
-$section-border: rgba(255,255,255,0.08);
-$section-bg: rgba(255,255,255,0.04);
-$label-bg: rgba(0,0,0,0.35);
-$hud-bg: rgba(0,0,0,0.5);
-$hud-border: rgba(255,255,255,0.12);
 
 $black: #010101;
-$white: #DDDDDD;
+$white: #FAFAFA;
 $gray: #9D9D9D;
 
 
@@ -41,7 +32,7 @@ $rem-base: 16px;
 
 // Body
 $base-text-color: $white !default;
-$base-background-color: $dark-bg !default;
+$base-background-color: $black !default;
 $font-size-base: 16px !default;
 $line-height-base: 1.2 !default;
 $base-font-family: $base-font-sans-serif !default;
