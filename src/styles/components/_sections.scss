@@ -19,10 +19,14 @@
   opacity: 0;
   visibility: hidden;
   transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  padding: max(15vh, 120px) 0;
+  padding: max(11vh, 70px) 0;
   z-index: 1;
   pointer-events: none;
   will-change: opacity, visibility;
+
+  @include media ("<tablet") {
+    padding: max(5vh, 90px) 0;
+  }
 
   &.first-section {
 

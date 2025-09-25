@@ -266,6 +266,8 @@ function setOverflowStyle(overflow) {
  * Блокирует скролл
  */
 function blockScroll() {
+  // ЗАКОММЕНТИРОВАНО: блокировка скролла отключена
+  /*
   isScrollBlocked = true;
   videoTimeAtBlock = $video.currentTime || 0;
   scrollPositionAtBlock = window.scrollY; // Сохраняем текущую позицию скролла
@@ -282,6 +284,7 @@ function blockScroll() {
       }
     }, 50);
   }
+  */
 
   setOverflowStyle('hidden');
 }
@@ -338,8 +341,9 @@ function checkSectionDisplay() {
       foundSection = true;
       if (i !== currentSection) {
         showSection(i);
-        blockScroll();
-        setTimeout(unblockScroll, deviceConfig.pauseDuration);
+        // ЗАКОММЕНТИРОВАНО: блокировка скролла отключена
+        // blockScroll();
+        // setTimeout(unblockScroll, deviceConfig.pauseDuration);
       }
     return;
   }
@@ -439,6 +443,8 @@ function tick() {
  * Предотвращает скролл во время блокировки
  */
 function preventScroll(e) {
+  // ЗАКОММЕНТИРОВАНО: блокировка скролла отключена
+  /*
   if (isScrollBlocked) {
     e.preventDefault();
     e.stopPropagation();
@@ -454,6 +460,7 @@ function preventScroll(e) {
     
     return false;
   }
+  */
 }
 
 /**
